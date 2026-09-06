@@ -44,47 +44,48 @@ bot.on("message", async (msg) => {
 bot.startPolling();
 
 app.post("/web-data", async (req, res) => {
-  const { queryId, products, totalPrice } = req.body;
+  const { chatId, queryId, totalPrice } = req.body;
 
-  console.log("WEB DATA:", req.body);
+  const orderNumber = Math.floor(10000 + Math.random() * 90000);
 
   try {
-    const response = await fetch(
-      `https://api.telegram.org/bot${token}/answerWebAppQuery`,
-      {
+    const messageText =
+      `<b>Вітаємо. Ви успішно оформили замовлення!</b>\n\n` +
+      `<b>Номер вашого замовлення:</b> ${orderNumber}\n` +
+      `<b>Сумма замовлення:</b> ${totalPrice} грн.\n\n` +
+      `Очікуйте на дзвінок нашого менеджера!\n\n` +
+      `Якщо виникли питання по замовленню або потрібна консультація нашого менеджера, <a href="https://t.me/your_manager_username">напишіть нам</a>`;
+
+    if (chatId) {
+      await api.sendMessage({
+        chat_id: chatId,
+        text: messageText,
+        parse_mode: "HTML",
+        disable_web_page_preview: true,
+      });
+    }
+
+    if (queryId) {
+      await fetch(`https://api.telegram.org/bot${token}/answerWebAppQuery`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           web_app_query_id: queryId,
           result: {
             type: "article",
             id: queryId,
-            title: "Успішна покупка",
-            description: `Сума: ${totalPrice} грн`,
+            title: "Замовлення оформлено",
             input_message_content: {
-              message_text: `Покупка успішна!\n\nТоварів: ${products.length}\nСума: ${totalPrice} грн`,
+              message_text: "Замовлення успішно прийнято!",
             },
           },
         }),
-      },
-    );
-
-    const result = await response.json();
-
-    console.log("TELEGRAM RESULT:", result);
-
-    if (!response.ok || !result.ok) {
-      throw new Error(JSON.stringify(result));
+      });
     }
 
-    res.status(200).json({
-      success: true,
-    });
+    res.status(200).json({ success: true });
   } catch (error) {
     console.error("TELEGRAM ERROR:", error);
-
     res.status(500).json({
       success: false,
       error: error instanceof Error ? error.message : String(error),
