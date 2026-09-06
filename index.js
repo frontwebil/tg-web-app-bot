@@ -44,12 +44,12 @@ bot.on("message", async (msg) => {
 bot.startPolling();
 
 app.post("/web-data", async (req, res) => {
+  console.log("WEB DATA:", req.body);
+
   const { queryId, products, totalPrice } = req.body;
 
-  console.log(req.body);
-
   try {
-    await api.answerWebAppQuery(queryId, {
+    const result = await api.answerWebAppQuery(queryId, {
       type: "article",
       id: queryId,
       title: "Успішна покупка",
@@ -59,18 +59,16 @@ app.post("/web-data", async (req, res) => {
       },
     });
 
-    res.status(200).json({ success: true });
+    console.log("TELEGRAM RESULT:", result);
+
+    res.json({ success: true });
   } catch (error) {
-    console.log(error);
-    await api.answerWebAppQuery(queryId, {
-      type: "article",
-      id: queryId,
-      title: "Сталася помилка",
-      input_message_content: {
-        message_text: `Щось трапилось...`,
-      },
+    console.error("TELEGRAM ERROR:", error);
+
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : error,
     });
-    res.status(500).json({ success: false });
   }
 });
 
