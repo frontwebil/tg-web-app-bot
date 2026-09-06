@@ -1,7 +1,7 @@
 const webAppUrl = "https://tg-web-app-react-tawny.vercel.app";
 
 export const form_markup = JSON.stringify({
-  keyboard: [
+  inline_keyboard: [
     [
       {
         text: "Заповнити форму",

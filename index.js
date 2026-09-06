@@ -44,7 +44,7 @@ bot.on("message", async (msg) => {
 bot.startPolling();
 
 app.post("/web-data", async (req, res) => {
-  const { chatId, queryId, totalPrice } = req.body;
+  const { chatId , totalPrice } = req.body;
 
   const orderNumber = Math.floor(10000 + Math.random() * 90000);
 
@@ -62,24 +62,6 @@ app.post("/web-data", async (req, res) => {
         text: messageText,
         parse_mode: "HTML",
         disable_web_page_preview: true,
-      });
-    }
-
-    if (queryId) {
-      await fetch(`https://api.telegram.org/bot${token}/answerWebAppQuery`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          web_app_query_id: queryId,
-          result: {
-            type: "article",
-            id: queryId,
-            title: "Замовлення оформлено",
-            input_message_content: {
-              message_text: "Замовлення успішно прийнято!",
-            },
-          },
-        }),
       });
     }
 
