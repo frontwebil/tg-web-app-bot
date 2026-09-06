@@ -44,30 +44,50 @@ bot.on("message", async (msg) => {
 bot.startPolling();
 
 app.post("/web-data", async (req, res) => {
-  console.log("WEB DATA:", req.body);
-
   const { queryId, products, totalPrice } = req.body;
 
+  console.log("WEB DATA:", req.body);
+
   try {
-    const result = await api.answerWebAppQuery(queryId, {
-      type: "article",
-      id: queryId,
-      title: "Успішна покупка",
-      description: `Сума: ${totalPrice} грн`,
-      input_message_content: {
-        message_text: `Покупка успішна!\n\nТоварів: ${products.length}\nСума: ${totalPrice} грн`,
+    const response = await fetch(
+      `https://api.telegram.org/bot${token}/answerWebAppQuery`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          web_app_query_id: queryId,
+          result: {
+            type: "article",
+            id: queryId,
+            title: "Успішна покупка",
+            description: `Сума: ${totalPrice} грн`,
+            input_message_content: {
+              message_text: `Покупка успішна!\n\nТоварів: ${products.length}\nСума: ${totalPrice} грн`,
+            },
+          },
+        }),
       },
-    });
+    );
+
+    const result = await response.json();
 
     console.log("TELEGRAM RESULT:", result);
 
-    res.json({ success: true });
+    if (!response.ok || !result.ok) {
+      throw new Error(JSON.stringify(result));
+    }
+
+    res.status(200).json({
+      success: true,
+    });
   } catch (error) {
     console.error("TELEGRAM ERROR:", error);
 
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 });
